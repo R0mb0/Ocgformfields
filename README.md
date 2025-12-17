@@ -19,7 +19,7 @@ PDF fields (AcroForm) natively associated with OCG (layers) via the `/OC` key in
 ## ✅ Requirements
 - Engine: pdfLaTeX
 - Viewer: Adobe Acrobat/Reader (other apps may ignore `/OC` on annotations)
-- LaTeX packages: `hyperref`, `ocgx2`, `acrotex` (provides `eforms`), `xparse`
+- LaTeX packages: `hyperref`, `ocgx2`, `acrotex` (provides `eforms`), `xparse`, `l3packages`
 
 ### 💻 `On MiKTeX, install packages via MiKTeX Console (Packages): “acrotex”, “ocgx2”. `
 
