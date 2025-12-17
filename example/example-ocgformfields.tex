@@ -1,0 +1,28 @@
+\documentclass{article}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+
+\usepackage{hyperref}
+\usepackage{ocgx2}
+\usepackage{eforms}
+\usepackage{ocgformfields} % la libreria definita sopra
+
+\begin{document}
+
+\section*{Campi in layer OCG con toggle dinamico}
+
+% Crea un toggle link per l'OCG "sens"
+\OCGToggle{sens}{\textbf{Mostra/Nascondi dati sensibili}}
+
+\medskip
+
+\begin{ocgform}{Dati Sensibili}{sens}{on}
+  Nome: \OCGTextField[name=nome,width=8cm]{}\\[6pt]
+  Email: \OCGTextField[name=email,width=8cm]{}\\[6pt]
+\end{ocgform}
+
+\medskip
+
+% In alternativa, un vero pushbutton PDF per il toggle
+\OCGToggleButton{sens}{Toggle Dati Sensibili}
+
+\end{document}

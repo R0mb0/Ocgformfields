@@ -1,0 +1,82 @@
+% ocgformfields.sty — Campi form associati a OCG con /OC (pdfLaTeX + ocgx2 + eforms)
+% Target viewer: Adobe Acrobat/Reader
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{ocgformfields}[2025/12/17 v0.1 OCG-aware form fields]
+
+% Dipendenze
+\RequirePackage{hyperref}
+\RequirePackage{ocgx2}
+\RequirePackage{eforms}
+\RequirePackage{xparse}
+
+% Mappa testuale -> booleano (on/off -> 1/0)
+\def\OCGFF@vis@on{1}
+\def\OCGFF@vis@off{0}
+\NewDocumentCommand\OCGFF@parsevis{m}{%
+  \begingroup
+    \edef\OCGFF@tmp{#1}%
+    \lowercase{\def\OCGFF@tmpa{\OCGFF@tmp}}%
+    \expandafter\endgroup
+    \ifx\OCGFF@tmpa\OCGFF@vis@on 1\else
+    \ifx\OCGFF@tmpa\OCGFF@vis@off 0\else
+      #1%
+    \fi\fi
+}
+
+% Ottenere il riferimento PDF dell’OCG da ocgx2 (personalizzabile)
+% Di default proviamo con \refocg{<id>}; se la tua ocgx2 usa un’altra macro,
+% puoi ridefinire \OCGRefFromLabel{<id>} per restituire "num 0 R".
+\providecommand\OCGRefFromLabel[1]{\refocg{#1}}
+
+% Stato corrente dell’OCG per l’ambiente ocgform
+\newcommand*\OCGFF@currentID{} % vuoto quando non in ocgform
+
+% Ambiente: ocgform
+% Sintassi: \begin{ocgform}{Titolo}{id}{on|off|1|0} ... \end{ocgform}
+\NewDocumentEnvironment{ocgform}{mmm}
+ {%
+   \def\OCGFF@currentID{#2}%
+   % Normalizziamo lo stato visibile
+   \edef\OCGFF@vis{\OCGFF@parsevis{#3}}%
+   % Apriamo l'OCG di ocgx2
+   \begin{ocg}{#1}{#2}{\OCGFF@vis}%
+ }
+ {%
+   \end{ocg}%
+   \let\OCGFF@currentID\relax
+ }
+
+% Campo testo: wrapper su eforms \textField con addendum /OC <ref>
+% Uso: \OCGTextField[<opzioni eforms/hyperref>]{<default>}
+% Esempio opzioni: name=nome,width=8cm
+\NewDocumentCommand{\OCGTextField}{O{} m}{%
+  \begingroup
+    \edef\OCGFF@id{\OCGFF@currentID}%
+    \ifx\OCGFF@id\relax
+      \PackageError{ocgformfields}{\string\OCGTextField usato fuori da ocgform}{%
+        Inserisci i campi dentro \string\begin{ocgform}...\string\end{ocgform}.}%
+    \fi
+    \edef\OCGFF@ref{\OCGRefFromLabel{\OCGFF@id}}%
+    % Iniettiamo /OC <ref> nel dizionario dell’annotazione
+    % Nota: 'addendum' è una chiave di eforms per aggiungere voci raw
+    \edef\OCGFF@opts{addendum=/OC\space \OCGFF@ref,#1}%
+    \textField[\OCGFF@opts]{#2}%
+  \endgroup
+}
+
+% Toggle dell'OCG: wrapper su ocgx2 \switchocg
+% Uso: \OCGToggle{<id>}{<contenuto del link/bottone>}
+\NewDocumentCommand{\OCGToggle}{m m}{%
+  \switchocg{#1}{#2}%
+}
+
+% Convenienza: un bottone di toggle come pushbutton (eforms) che fa anche \switchocg
+% Uso: \OCGToggleButton{<id>}{<etichetta>}
+\NewDocumentCommand{\OCGToggleButton}{m m}{%
+  \pushButton[\CA{#2},A={/S/SetOCGState /State [ <</Toggle [ \OCGRefFromLabel{#1} ]>> ]}]{toggle:#1}%
+}
+
+% Note:
+% - \OCGToggle usa la link macro di ocgx2 che imposta /SetOCGState con Toggle.
+% - \OCGToggleButton crea un vero pushbutton PDF con l'azione SetOCGState.
+% - Entrambe dovrebbero far sì che Acrobat aggiorni dinamicamente anche le annotazioni con /OC.
